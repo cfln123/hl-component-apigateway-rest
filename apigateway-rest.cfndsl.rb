@@ -27,7 +27,7 @@ CloudFormation do
   ApiGateway_DomainName(:CustomDomain) {
     Condition(:HasDomainName)
     CertificateArn FnIf('HasEdgeCertificateArn', Ref(:EdgeCertificateArn), Ref('AWS::NoValue'))
-    DomainName FnSub("#{custom_dns_prefix}.${EnvironmentName}.${DnsDomain}")
+    DomainName FnSub("#{custom_dns_prefix}.${DnsDomain}")
     EndpointConfiguration {
       Types endpoint_configuration['types']
     } unless endpoint_configuration.empty?
@@ -38,8 +38,8 @@ CloudFormation do
   
   Route53_RecordSet(:RegionalDNSRecord) {
     Condition(:HasRegionalCertificateArn)
-    HostedZoneName FnSub("${EnvironmentName}.${DnsDomain}.")
-    Name FnSub("#{custom_dns_prefix}.${EnvironmentName}.${DnsDomain}.")
+    HostedZoneName FnSub("${DnsDomain}.")
+    Name FnSub("#{custom_dns_prefix}.${DnsDomain}.")
     Type 'CNAME'
     TTL '60'
     ResourceRecords [ FnGetAtt('CustomDomain','RegionalDomainName') ]
@@ -47,8 +47,8 @@ CloudFormation do
 
   Route53_RecordSet(:EdgeDNSRecord) {
     Condition(:HasEdgeCertificateArn)
-    HostedZoneName FnSub("${EnvironmentName}.${DnsDomain}.")
-    Name FnSub("#{custom_dns_prefix}.${EnvironmentName}.${DnsDomain}.")
+    HostedZoneName FnSub("${DnsDomain}.")
+    Name FnSub("#{custom_dns_prefix}.${DnsDomain}.")
     Type 'CNAME'
     TTL '60'
     ResourceRecords [ FnGetAtt('CustomDomain','DistributionDomainName') ]
