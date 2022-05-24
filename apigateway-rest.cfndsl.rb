@@ -104,6 +104,11 @@ CloudFormation do
     Export FnSub("${EnvironmentName}-#{external_parameters[:component_name]}-RestApiId")
   }
   
+  Output('RestApiRootResourceId') do
+    Value(FnGetAtt('RestApi', 'RootResourceId'))
+    Export FnSub("${EnvironmentName}-#{external_parameters[:component_name]}-RootResourceId")
+  end
+  
   ApiGateway_Method('DefaultMethod') do
     AuthorizationType 'NONE'
     HttpMethod 'OPTIONS'
