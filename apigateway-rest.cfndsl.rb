@@ -103,8 +103,19 @@ CloudFormation do
     Value(Ref(:RestApi))
     Export FnSub("${EnvironmentName}-#{external_parameters[:component_name]}-RestApiId")
   }
+  
+  ApiGateway_Method('DefaultMethod') do
+    AuthorizationType 'NONE'
+    HttpMethod 'OPTIONS'
+    Integration {
+      Type 'MOCK'
+    }
+    RestApiId Ref('RestApi')
+    ResourceId FnGetAtt('RestApi', 'RootResourceId')
+  end
 
   ApiGateway_Deployment(:RestApiDeployment) {
+    DependsOn 'DefaultMethod'
     Description FnSub("#{api_description}")
     RestApiId Ref(:RestApi)
   }
