@@ -35,7 +35,19 @@ CloudFormation do
     SecurityPolicy security_policy
     Tags default_tags
   }
-  
+
+  Output(:RestRegionalApiDomainName) {
+    Condition(:HasRegionalCertificateArn)
+    Value(FnGetAtt('CustomDomain','RegionalDomainName'))
+    Export FnSub("${EnvironmentName}-#{external_parameters[:component_name]}-RestApiDomainName")
+  }
+
+  Output(:RestEdgeApiDomainName) {
+    Condition(:HasEdgeCertificateArn)
+    Value(FnGetAtt('CustomDomain','DistributionDomainName'))
+    Export FnSub("${EnvironmentName}-#{external_parameters[:component_name]}-RestApiDomainName")
+  }
+
   Route53_RecordSet(:RegionalDNSRecord) {
     Condition(:HasRegionalCertificateArn)
     HostedZoneName FnSub("${EnvironmentName}.${DnsDomain}.")
@@ -67,7 +79,7 @@ CloudFormation do
   api_path_prefix = external_parameters.fetch(:api_path_prefix, nil)
 
   api_body_file = external_parameters.fetch(:api_body_file, '')
-  if File.exists?(api_body_file)
+  if File.exist?(api_body_file)
     api_body = File.read(api_body_file)
   else
     api_body = nil
@@ -85,7 +97,7 @@ CloudFormation do
     Description FnSub("#{api_description}")
     ApiKeySourceType FnSub(api_key_source_type) unless api_key_source_type.nil?
     BinaryMediaTypes binary_media_types unless binary_media_types.nil?
-    Body api_body unless api_body.nil?
+    Body FnSub(api_body) unless api_body.nil?
     BodyS3Location({
       Bucket: FnSub(body_s3_location['bucket']),
       Key: FnSub(body_s3_location['key'])
@@ -103,6 +115,11 @@ CloudFormation do
     Value(Ref(:RestApi))
     Export FnSub("${EnvironmentName}-#{external_parameters[:component_name]}-RestApiId")
   }
+
+  Output('RestApiRootResourceId') do
+    Value(FnGetAtt('RestApi', 'RootResourceId'))
+    Export FnSub("${EnvironmentName}-#{external_parameters[:component_name]}-RootResourceId")
+  end
 
   ApiGateway_Deployment(:RestApiDeployment) {
     Description FnSub("#{api_description}")
