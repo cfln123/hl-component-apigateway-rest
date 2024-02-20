@@ -116,6 +116,11 @@ CloudFormation do
     Export FnSub("${EnvironmentName}-#{external_parameters[:component_name]}-RestApiId")
   }
 
+  Output('RestApiRootResourceId') do
+    Value(FnGetAtt('RestApi', 'RootResourceId'))
+    Export FnSub("${EnvironmentName}-#{external_parameters[:component_name]}-RootResourceId")
+  end
+
   ApiGateway_Deployment(:RestApiDeployment) {
     Description FnSub("#{api_description}")
     RestApiId Ref(:RestApi)
